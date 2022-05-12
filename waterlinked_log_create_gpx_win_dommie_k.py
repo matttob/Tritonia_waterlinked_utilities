@@ -62,7 +62,7 @@ def get_logging_data_dir():
     logging_data_dir = '/Users/matthewtoberman/Desktop'
 
 def test_for_connection_set_start_button_status():
-    global base_url
+    global base_url, user_input_url
      # test for api response 
     base_url = user_input_url.get()
     filtered_acoutistic_position = get_acoustic_position(base_url)
@@ -75,6 +75,7 @@ def test_for_connection_set_start_button_status():
 
 
 def file_dialog_box_handler():
+    global base_url, user_input_url
     get_logging_data_dir()
     test_for_connection_set_start_button_status()
 
@@ -101,6 +102,11 @@ def get_global_position(base_url):
 def get_master_position(base_url):
     return get_data("{}/api/v1/position/master".format(base_url))
       
+def get_imu(base_url):
+    return get_data("{}/api/v1/imu/calibrate".format(base_url))
+
+def get_heading(base_url):
+    return get_data("{}/api/v1/external/orientation".format(base_url))
 
 def construct_log_files():
     global logging_data_dir
@@ -121,7 +127,7 @@ def construct_log_files():
     # Open the file for append
     global_position_output_file = open(global_position_log_file_name, 'w', newline='')   
     global global_position_headers
-    global_position_headers = ['time', 'longitude','latitude','altitude']
+    global_position_headers = ['time', 'longitude','latitude','altitude','heading']
     writer = DictWriter(global_position_output_file, delimiter=',', lineterminator='\n',fieldnames=global_position_headers)
     writer.writeheader()
     global_position_output_file.close()
@@ -135,7 +141,18 @@ def construct_log_files():
     master_position_headers = ['time', 'longitude','latitude']
     writer = DictWriter(master_output_file, delimiter=',', lineterminator='\n',fieldnames=master_position_headers)
     writer.writeheader()
-    master_output_file.close()                                                
+    master_output_file.close()           
+
+    # # imu Log 
+    # global imu_log_file_name
+    # imu_log_file_name = logging_data_dir + '/'+ 'IMU_' + log_file_name('.csv',datetime.now())
+    # # Open the file for append
+    # imu_output_file = open(imu_log_file_name, 'w', newline='') 
+    # global imu_headers
+    # master_position_headers = ['time', 'longitude','latitude']
+    # writer = DictWriter(master_output_file, delimiter=',', lineterminator='\n',fieldnames=master_position_headers)
+    # writer.writeheader()
+    # master_output_file.close()                                         
 
 def create_gpx():
     global global_position_log_file_name, master_position_log_file_name
@@ -171,8 +188,9 @@ def get_and_store_values():
             f_filtered.close()
     
     global_position = get_global_position(base_url)
+    global_heading = get_heading(base_url)
     if global_position:
-        global_position_data_dict = {'time' : time_iter, 'longitude' :global_position["lon"],'latitude' :global_position["lat"],'altitude':filtered_acoutistic_position["z"]}
+        global_position_data_dict = {'time' : ti}
         with open(global_position_log_file_name, mode='a')  as f_global:
             dictwriter_object = DictWriter(f_global, fieldnames=global_position_headers)
             dictwriter_object.writerow(global_position_data_dict)
@@ -188,7 +206,8 @@ def get_and_store_values():
             # Close the file object
             f_master.close()
 
-
+    imu_test = get_imu(base_url)   
+       
     
 def main():
     global logging_data_dir
@@ -206,6 +225,7 @@ def main():
     create_gpx()
 
 def build_gui():
+    global base_url, user_input_url
     ## Create GUI
     app = tk.Tk()
     app.title("TRITONIA WATERLINKED DATA LOGGING")
@@ -216,8 +236,8 @@ def build_gui():
     L1 = tk.Label(app, text="IP of Topside :")
     L1.grid(row=0,column=0,sticky=tk.W)
     user_input_url = tk.Entry(app)
-    # user_input_url.insert(0, "http://192.168.2.94")
-    user_input_url.insert(0, "http://demo.waterlinked.com")
+    user_input_url.insert(0, "http://192.168.2.94")
+    # user_input_url.insert(0, "http://demo.waterlinked.com")
     user_input_url.grid(row=0,column=1,sticky=tk.E)
 
     directory_choose_button = tk.Button(app, text="Choose data storage folder",command=file_dialog_box_handler)
