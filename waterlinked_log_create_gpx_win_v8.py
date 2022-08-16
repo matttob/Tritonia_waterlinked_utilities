@@ -216,8 +216,8 @@ L1 = tk.Label(app, text="IP of Topside :")
 L1.grid(row=0,column=0,sticky=tk.W)
 
 inputtxt = tk.Entry(app)
-# inputtxt.insert(0, "http://192.168.2.94")
-inputtxt.insert(0, "http://demo.waterlinked.com")
+inputtxt.insert(0, "http://192.168.2.94")
+#inputtxt.insert(0, "http://demo.waterlinked.com")
 inputtxt.grid(row=0,column=1,sticky=tk.E)
 
 
